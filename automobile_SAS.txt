@@ -1,0 +1,131 @@
+/*CREATING NEW VARIABLE USING IF ELSE STATEMENT*/
+
+Data fathima.automobile;
+set fathima.automobile;
+if fueltype="die" then fuel=1;
+else fuel=0;
+run;
+
+Data fathima.automobile;
+set fathima.automobile;
+if aspiration="std" then aspiration_new=1;
+else aspiration_new=0;
+run;
+
+Data fathima.automobile;
+set fathima.automobile;
+if bodystyle="convertible" then body=1;
+else if bodystyle="hard top" then body=2;
+else if bodystyle="hatchback" then body=3;
+else if bodystyle="sedan" then body=4;
+else body=5;
+run;
+
+Data fathima.automobile;
+set fathima.automobile;
+if drivewheels="4wd" then drive=1;
+else if drivewheels="fwd" then drive=2;
+else drive=3;
+run;
+
+Data fathima.automobile;
+set fathima.automobile;
+if enginetype="dohcv" then engine=1;
+else if enginetype=1 then engine=2;
+else if enginetype="ohc" then engine=3;
+else if enginetype="ohcf" then engine=4;
+else if enginetype="ohcv" then engine=5;
+else engine=6;
+run;
+
+data fathima.automobile;
+set fathima.automobile;
+area = length*width;
+run;
+
+
+/*DROP VARIABLES*/
+data fathima.automobile;
+set fathima.automobile(drop=symboling normalized fueltype bodystyle aspiration numdoors drivewheels enginelocation length width height enginetype numcylinders fuelsystem);
+run;
+
+/*UNIVARIATE ANALYSIS*/
+proc univariate data=fathima.automobile;
+var price;
+run;
+
+proc freq data=fathima.automobile;
+table fuel;
+run;
+
+proc freq data=fathima.automobile;
+table body*fuel;
+run;
+
+proc tabulate data=fathima.automobile;
+class fuel;
+var price;
+table fuel,price*(N Mean p5 p25 p50 p75 p90 Min Max);
+run;
+
+
+
+
+
+/*GRAPHS*/
+proc gchart data=fathima.automobile;
+vbar make / type=percent;
+run;
+quit;
+
+proc gchart data=fathima.automobile;
+vbar fuel / discrete ;
+run;
+quit;
+
+
+proc gchart data=fathima.automobile;
+hbar make / type=percent subgroup=fuel ;
+title1 ‘Make Vs Type of Fuel’;
+format height 5.;
+label make=’Different Car Models’
+fuel=’Type Of Fuel’;
+run;
+quit;
+
+proc gplot data=fathima.automobile;
+title ‘Scatter Plot of Price & City-mpg’;
+plot citympg*price;
+run;
+quit;
+
+
+
+
+
+
+
+
+/*REGRESSION*/
+/*regression model- enter method*/
+proc reg data=fathima.automobile;
+model price=wheelbase curbweight enginesize bore stroke compressionratio horsepower peakrpm citympg highwaympg fuel aspiration_new body drive engine area;
+run;
+quit;
+
+
+/*Regression model- stepwiseselection*/
+proc reg data=fathima.automobile;
+model price=wheelbase curbweight enginesize bore stroke compressionratio horsepower peakrpm citympg highwaympg fuel aspiration_new body drive engine area/ selection=stepwise;
+run;
+quit;
+
+
+/*Prediction Based On Regression Model*/
+proc reg data=fathima.automobile outest=FATHIMA.model_parms;
+model price= enginesize bore stroke compressionratio peakrpm fuel drive engine ;
+run;
+proc score data=fathima.automobile
+score=FATHIMA.model_parms out=FATHIMA.pred_cb type=parms;
+var enginesize bore stroke compressionratio peakrpm fuel drive engine;
+run;
